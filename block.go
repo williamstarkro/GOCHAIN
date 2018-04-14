@@ -1,4 +1,3 @@
-go
 package main
 
 import (
@@ -10,21 +9,21 @@ import (
 
 // Block represents block in blockchain
 type Block struct {
-	timestamp     int64
-	data          []byte
-	prevBlockHash []byte
-	hash          []byte
+	Timestamp     int64
+	Data          []byte
+	PrevBlockHash []byte
+	Hash          []byte
 }
 
 // calculates and sets block hash
 func (b *Block) SetHash() {
 	
 	h := sha256.New()
-	timestamp := []byte(strconv.FormatInt(b.timestamp, 10))
+	timestamp := []byte(strconv.FormatInt(b.Timestamp, 10))
 	var data []byte
 	
-	data = append(data, b.prevBlockHash...)
-	data = append(data, b.data...)
+	data = append(data, b.PrevBlockHash...)
+	data = append(data, b.Data...)
 	data = append(data, timestamp...)
 
 	_, err := h.Write(data)
@@ -32,13 +31,13 @@ func (b *Block) SetHash() {
 		log.Panic(err)
 	}
 
-	b.hash = h.Sum(nil)
+	b.Hash = h.Sum(nil)
 }
 
 // creates and returns block based on data and previous block
-func NewBlock(data string, prevBlockHash []byte) *Block {
+func NewBlock(Data string, PrevBlockHash []byte) *Block {
 
-	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte("")}
+	block := &Block{time.Now().Unix(), []byte(Data), PrevBlockHash, []byte("")}
 	block.SetHash()
 	return block
 }
