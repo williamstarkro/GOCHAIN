@@ -2,46 +2,58 @@ package main
 
 import (
 	"time"
-	"crypto/sha256"
-	"strconv"
+	"encoding/gob"
+	"bytes"
 	"log"
 )
 
 // Block represents block in blockchain
 type Block struct {
 	Timestamp     int64
-	Data          []byte
+	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Hash          []byte
+	Nonce         int
 }
 
-// calculates and sets block hash
-func (b *Block) SetHash() {
-	
-	h := sha256.New()
-	timestamp := []byte(strconv.FormatInt(b.Timestamp, 10))
-	var data []byte
-	
-	data = append(data, b.PrevBlockHash...)
-	data = append(data, b.Data...)
-	data = append(data, timestamp...)
 
-	_, err := h.Write(data)
+// creates and returns block based on data and previous block
+func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
+
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
+
+	block.Hash = hash[:]
+	block.Nonce = nonce
+
+	return block
+}
+
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
+}
+
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+
+	err := encoder.Encode(b)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	b.Hash = h.Sum(nil)
+	return result.Bytes()
 }
 
-// creates and returns block based on data and previous block
-func NewBlock(Data string, PrevBlockHash []byte) *Block {
+func DeserializeBlock(d []byte) *Block {
+	var block Block
 
-	block := &Block{time.Now().Unix(), []byte(Data), PrevBlockHash, []byte("")}
-	block.SetHash()
-	return block
-}
+	decoder := gob.NewDecoder(bytes.NewReader(d))
+	err := decoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
 
-func NewGenesisBlock() *Block {
-	return NewBlock("Genesis Block", []byte("0"))
+	return &block
 }
