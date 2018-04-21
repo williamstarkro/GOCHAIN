@@ -16,15 +16,9 @@ type Transaction struct {
 	Vout []TXOutput
 }
 
-type TXOutput struct {
-	Value        int
-	ScriptPubKey string
-}
+func (tx Transaction) IsCoinbase() bool {
 
-type TXInput struct {
-	Txid      []byte
-	Vout      int
-	ScriptSig string
+	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
 }
 
 func NewCoinbaseTX(to, data string) *Transaction {
